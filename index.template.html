@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>菌相階層預測 — Random Forest 獨立網頁</title>
+<meta name="description" content="用 phyloseq 把 OTU 表彙整到門、綱、目、科、屬、種，再以與 R 相同的隨機森林投票公式預測 Control 或 Parkinson。">
+<style>
+  :root {
+    --ink: #1c2422;
+    --muted: #5c6763;
+    --line: #d7e2dc;
+    --paper: #f3f7f4;
+    --card: #fffcf8;
+    --accent: #1f6f6a;
+    --bar: #B2182B;
+    --good: #1d6b45;
+    --control: #2a7563;
+    --parkinson: #9d2c3a;
+    --shadow: 0 18px 50px rgba(24, 48, 42, 0.08);
+    --sans: "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --mono: "Cascadia Code", "SF Mono", Consolas, ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(1100px 480px at 8% -12%, rgba(31, 111, 106, 0.12), transparent 55%),
+      var(--paper);
+    font-family: var(--sans);
+    font-size: 16.5px;
+    line-height: 1.65;
+  }
+  a { color: var(--accent); }
+  .wrap { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+  header.site { background: #17241f; color: #f6f1e7; }
+  header.site code { background: rgba(246, 241, 231, 0.14); color: #f6f1e7; }
+  .site-inner { padding: 28px 0 22px; }
+  .eyebrow {
+    margin: 0 0 8px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    color: #d7c4a4;
+  }
+  h1 { margin: 0; font-size: clamp(1.85rem, 4vw, 2.9rem); line-height: 1.15; font-weight: 650; letter-spacing: -0.03em; }
+  .lede { max-width: 760px; margin: 14px 0 0; color: #e7e0d4; font-size: 1.05rem; }
+  .page-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .page-nav a {
+    color: #f6f1e7;
+    text-decoration: none;
+    border: 1px solid rgba(246, 241, 231, 0.28);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.92rem;
+  }
+  .page-nav a:hover { background: rgba(246, 241, 231, 0.08); }
+  main { padding: 28px 0 64px; }
+  .app { display: grid; grid-template-columns: 360px 1fr; gap: 18px; align-items: start; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+  .controls { padding: 18px 18px 8px; }
+  @media (min-width: 960px) {
+    .controls { position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow: auto; }
+  }
+  .controls h2, .stage h2 { margin: 0 0 4px; font-size: 1.05rem; }
+  .hint { color: var(--muted); font-size: 0.86rem; margin: 0 0 12px; }
+  label.field { display: block; font-size: 0.86rem; color: var(--muted); margin-bottom: 4px; }
+  select {
+    width: 100%;
+    font: inherit;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .slider-block { margin: 0 0 14px; }
+  .slider-head, .vote-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .slider-head strong { font-weight: 650; font-size: 0.95rem; }
+  .slider-head span, .range-note { color: var(--muted); font-size: 0.82rem; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); margin: 6px 0 2px; }
+  .slider-foot { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  input[type="number"] {
+    width: 6.2rem;
+    font: inherit;
+    padding: 4px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+  }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 16px; }
+  button {
+    font: inherit;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  button:hover { border-color: #b7c9c2; }
+  button.active { background: #17241f; color: #f6f1e7; border-color: #17241f; }
+  .summary { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 6px; }
+  .summary p { margin: 4px 0; }
+  .acc { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .stage { display: grid; gap: 18px; }
+  .predict { padding: 22px 22px 18px; border-top: 8px solid var(--accent); }
+  .kicker { margin: 0; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.78rem; }
+  .species { margin: 4px 0 0; font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.05; letter-spacing: -0.04em; }
+  .sentence { margin: 12px 0 0; }
+  .votes { display: grid; gap: 10px; margin-top: 16px; }
+  .vote { display: grid; grid-template-columns: 8.5rem 1fr auto; gap: 10px; align-items: center; }
+  .swatch { width: 0.7rem; height: 0.7rem; border-radius: 99px; display: inline-block; margin-right: 6px; }
+  .track { height: 10px; background: #e7f0ec; border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; width: 0; border-radius: 99px; }
+  .vote-num { font-variant-numeric: tabular-nums; font-size: 0.92rem; min-width: 7.5rem; text-align: right; }
+  .plot, .importance, .docs { padding: 18px 20px 20px; }
+  .bars { display: grid; gap: 8px; margin-top: 10px; }
+  .bar-row { display: grid; grid-template-columns: 9.4rem 1fr auto; gap: 8px; align-items: center; font-size: 0.92rem; }
+  .bar-track { height: 12px; background: #eef3f0; border-radius: 99px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; background: var(--accent); border-radius: 99px; }
+  .bar-fill.hot { background: var(--bar); }
+  .bar-val { font-variant-numeric: tabular-nums; }
+  article { margin-top: 42px; }
+  article h2 { font-size: 1.7rem; line-height: 1.25; margin: 2.2rem 0 0.6rem; letter-spacing: -0.03em; }
+  article h3 { font-size: 1.15rem; margin: 1.4rem 0 0.4rem; }
+  .prose p, .prose li { max-width: 760px; }
+  .prose ol, .prose ul { padding-left: 1.2rem; }
+  code { font-family: var(--mono); font-size: 0.88em; background: #e7f0ec; padding: 0.1em 0.35em; border-radius: 6px; }
+  pre {
+    font-family: var(--mono);
+    font-size: 0.86rem;
+    line-height: 1.55;
+    background: #1c1915;
+    color: #f6f1e7;
+    padding: 14px 16px;
+    border-radius: 14px;
+    overflow: auto;
+    max-width: 760px;
+  }
+  pre code { background: transparent; color: inherit; padding: 0; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .compare pre { max-width: none; }
+  .compare h3 { margin-top: 0; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; background: var(--card); }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 0.82rem; letter-spacing: 0.04em; color: var(--muted); font-weight: 650; }
+  tr.selected td { background: #f3f8f6; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; margin: 12px 0 18px; }
+  .status { border-radius: 14px; padding: 12px 14px; margin: 12px 0; background: #e7f4ec; color: #143d28; max-width: 760px; }
+  .status.bad { background: #fdecee; color: #6d1c28; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0 8px; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+  .step b { display: block; color: var(--accent); font-size: 0.82rem; letter-spacing: 0.08em; }
+  footer { color: var(--muted); font-size: 0.88rem; padding-bottom: 28px; }
+  .tie { color: var(--parkinson); font-weight: 650; }
+  @media (max-width: 900px) {
+    .app, .compare, .steps { grid-template-columns: 1fr; }
+    .vote, .bar-row { grid-template-columns: 1fr; gap: 4px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="wrap site-inner">
+    <p class="eyebrow">phyloseq · caret · randomForest</p>
+    <h1>菌相階層預測</h1>
+    <p class="lede">OTU 表先用 phyloseq 彙整到門、綱、目、科、屬、種。每個階層各自訓練一棵隨機森林，網頁用同一批樹、同一套投票公式預測 Control 或 Parkinson。</p>
+    <nav class="page-nav">
+      <a href="#app">預測</a>
+      <a href="#ranks">各階層準確率</a>
+      <a href="#method">資料怎麼拆</a>
+      <a href="#convert">R 如何變成這頁</a>
+      <a href="#check">公式核對</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+  <section class="app" id="app">
+    <aside class="card controls">
+      <h2>輸入相對豐度</h2>
+      <p class="hint">數值是該階層整個群落的百分比，不是只在拉桿上的菌之間重新正規化。這些拉桿不必加總成 100。</p>
+      <label class="field" for="rank">分類階層</label>
+      <select id="rank"></select>
+      <div class="presets" id="presets"></div>
+      <div id="sliders"></div>
+      <div class="summary" id="summary"></div>
+    </aside>
+    <div class="stage">
+      <section class="card predict" id="predict">
+        <p class="kicker" id="kicker">Prediction</p>
+        <h2 class="species" id="call">—</h2>
+        <p class="sentence" id="sentence"></p>
+        <div class="votes" id="votes"></div>
+      </section>
+      <section class="card importance">
+        <h2>這個階層的變數重要性</h2>
+        <p class="hint">caret 的 <code>varImp(scale = TRUE)</code>：先減去最小值，再除以最大值並乘上 100。最小的菌是 0，最大的菌是 100。</p>
+        <div class="bars" id="importance"></div>
+      </section>
+      <section class="card plot" id="ranks">
+        <h2>六個階層的 10-fold CV 準確率</h2>
+        <p class="hint" id="baseline-note"></p>
+        <div class="bars" id="rank-bars"></div>
+      </section>
+    </div>
+  </section>
+
+  <article class="prose docs" id="method">
+    <h2>資料怎麼拆</h2>
+    <p>原始檔是 <code>otu_table.csv</code>、<code>taxonomy.csv</code>、<code>metadata.csv</code>。三張表先對齊共同的 OTU 與樣本，建成一個 phyloseq 物件，並去掉全為 0 的 OTU 與樣本。</p>
+    <div class="steps">
+      <div class="step"><b>01</b>無法鑑定、ambiguous、uncultured、metagenome、unknown、incertae sedis，或空白的名稱，只在目前這個階層改成 NA。它們不會被併成一個假菌種。</div>
+      <div class="step"><b>02</b><code>tax_glom(rank, NArm = TRUE)</code> 把同一個階層名稱的 OTU 讀數加總。門、綱、目、科、屬、種各做一次，互不混用。</div>
+      <div class="step"><b>03</b>每個樣本換成相對豐度百分比。分母是該階層全部菌的讀數，包含沒有被選進模型的菌。</div>
+    </div>
+    <p>拉桿無法一次操作幾百個屬。因此模型本身也只用同一批菌：先試盛行率 20%、10%、5%，留下變異數大於 0 的菌；若仍超過 12 個，只留相對豐度變異數最高的 12 個。Domain 幾乎全是 Bacteria，所以沒有單獨建模。</p>
+    <h3 id="features">目前各階層留用的菌</h3>
+    <div class="table-wrap" id="feature-table"></div>
+
+    <h2 id="convert">R 如何變成這頁</h2>
+    <p>網頁沒有重新訓練模型，也沒有呼叫 R。訓練仍在 R 完成，<code>export_model.R</code> 把 <code>randomForest</code> 的每一棵樹抄出來，<code>predict.js</code> 只負責走樹與投票。</p>
+    <div class="steps">
+      <div class="step"><b>訓練</b><code>set.seed(123)</code> 之後立刻 <code>train(Group ~ ., method = "rf")</code>，10-fold CV，<code>ntree = 500</code>。caret 會在全部樣本上，用選中的 mtry 再配一次最終模型。</div>
+      <div class="step"><b>匯出</b><code>getTree()</code> 的分裂點以 little-endian IEEE-754 的 base64 儲存。瀏覽器用 <code>DataView.getFloat64</code> 還原同一組位元，<code>&lt;=</code> 才不會因十進位捨入走錯邊。</div>
+      <div class="step"><b>核對</b>同一份 <code>predict.js</code> 在 R 的 V8 裡執行，整數票數必須與 <code>predict(type = "vote", norm.votes = FALSE)</code> 完全相同。</div>
+    </div>
+    <div class="compare">
+      <div>
+        <h3>R</h3>
+        <pre><code>node &lt;- 1L
+while (splitVar[node] != 0L) {
+  if (x[splitVar[node]] &lt;= split[node]) {
+    node &lt;- left[node]
+  } else {
+    node &lt;- right[node]
+  }
+}
+vote[class[node]] &lt;- vote[class[node]] + 1L</code></pre>
+      </div>
+      <div>
+        <h3>JavaScript</h3>
+        <pre><code>node = 0
+while (V[node] !== 0) {
+  if (x[V[node] - 1] &lt;= S[node]) node = L[node]
+  else node = R[node]
+}
+votes[C[node] - 1] += 1</code></pre>
+      </div>
+    </div>
+    <p>R 的節點從 1 起算，葉子的子節點是 0。匯出時改成從 0 起算，終端記成 -1。分裂變數同樣從 1 改成 0。內部節點的 prediction 是 0，只有葉子的類別編號是 1 或 2，程式只檢查葉子。</p>
+    <p>分類時 randomForest 選的是 <code>票數比例 / cutoff</code> 最大的類別。這個模型的 cutoff 是每個類別 1/2，所以比較的就是整數票數。兩邊票數完全相同時，R 用 <code>unif_rand()</code> 隨機挑一個；這頁不抽該亂數，會標成平手並列出所有領先類別。</p>
+
+    <h2 id="check">公式核對</h2>
+    <p>每個階層都拿全部訓練樣本、三組中位數預設，以及 24 組落在拉桿範圍內的隨機點，先用 <code>digits = 17</code> 寫成 JSON 再讀回，然後同時送給 R 與這頁的 JavaScript。</p>
+    <p id="verify"></p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>階層</th><th>樣本數</th><th>票數不一致</th><th>非平手類別不一致</th><th>平手</th><th>重要性最大差</th></tr>
+        </thead>
+        <tbody id="verify-rows"></tbody>
+      </table>
+    </div>
+    <h3>這個階層在訓練集上的混淆矩陣</h3>
+    <p class="hint">這是最終模型對訓練樣本的回代結果，不是 10-fold CV。CV 準確率寫在拉桿下方與上表。</p>
+    <div class="table-wrap" id="confusion"></div>
+    <h3>套件版本</h3>
+    <p id="versions"></p>
+  </article>
+</main>
+<footer class="wrap">
+  <p id="footer-note"></p>
+</footer>
+<script>
+___PREDICT_JS___
+var MODEL = ___MODEL_JSON___;
+var VERIFY = ___VERIFY_JSON___;
+</script>
+<script>
+(function () {
+  var rankSelect = document.getElementById("rank");
+  var sliderHost = document.getElementById("sliders");
+  var presetHost = document.getElementById("presets");
+  var active = MODEL.bestRank;
+  var state = {};
+  var colors = { Control: "#2a7563", Parkinson: "#9d2c3a" };
+
+  MODEL.rankOrder.forEach(function (rank) {
+    hydrateModel(MODEL.ranks[rank]);
+    state[rank] = MODEL.ranks[rank].features.map(function (f) { return f.value; });
+    var opt = document.createElement("option");
+    opt.value = rank;
+    opt.textContent = rank + "（" + MODEL.rankZh[rank] + "）";
+    if (rank === active) opt.selected = true;
+    rankSelect.appendChild(opt);
+  });
+
+  function model() { return MODEL.ranks[active]; }
+  function fmt(x, step) {
+    var digits = step < 0.1 ? 2 : 1;
+    return Number(x).toFixed(digits);
+  }
+  function clamp(feature, value) {
+    var v = Number(value);
+    if (!isFinite(v)) v = feature.value;
+    if (v < feature.min) v = feature.min;
+    if (v > feature.max) v = feature.max;
+    return v;
+  }
+
+  function renderSliders() {
+    var m = model();
+    sliderHost.innerHTML = "";
+    m.features.forEach(function (feature, i) {
+      var block = document.createElement("div");
+      block.className = "slider-block";
+      var head = document.createElement("div");
+      head.className = "slider-head";
+      var name = document.createElement("strong");
+      name.textContent = feature.label;
+      var range = document.createElement("span");
+      range.textContent = feature.min + "–" + feature.max;
+      head.appendChild(name);
+      head.appendChild(range);
+      var rangeInput = document.createElement("input");
+      rangeInput.type = "range";
+      rangeInput.min = feature.min;
+      rangeInput.max = feature.max;
+      rangeInput.step = feature.step;
+      rangeInput.value = state[active][i];
+      var foot = document.createElement("div");
+      foot.className = "slider-foot";
+      var note = document.createElement("span");
+      note.className = "range-note";
+      note.textContent = "相對豐度 %";
+      var num = document.createElement("input");
+      num.type = "number";
+      num.min = feature.min;
+      num.max = feature.max;
+      num.step = feature.step;
+      num.value = fmt(state[active][i], feature.step);
+      function commit(raw) {
+        var v = clamp(feature, raw);
+        state[active][i] = v;
+        rangeInput.value = v;
+        num.value = fmt(v, feature.step);
+        render();
+      }
+      rangeInput.addEventListener("input", function () { commit(rangeInput.value); });
+      num.addEventListener("change", function () { commit(num.value); });
+      foot.appendChild(note);
+      foot.appendChild(num);
+      block.appendChild(head);
+      block.appendChild(rangeInput);
+      block.appendChild(foot);
+      sliderHost.appendChild(block);
+    });
+
+    presetHost.innerHTML = "";
+    m.presets.forEach(function (preset) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = preset.name;
+      btn.addEventListener("click", function () {
+        state[active] = preset.x.slice();
+        renderSliders();
+        render();
+      });
+      presetHost.appendChild(btn);
+    });
+  }
+
+  function render() {
+    var m = model();
+    var pred = predictCase(m, state[active]);
+    var call = document.getElementById("call");
+    var sentence = document.getElementById("sentence");
+    call.textContent = pred.tie ? pred.leaders.join(" / ") : pred.species;
+    call.style.color = pred.tie ? "#9d2c3a" : (colors[pred.species] || "#1c2422");
+    document.getElementById("kicker").textContent = active + " · " + MODEL.rankZh[active];
+    sentence.textContent = pred.tie
+      ? "兩邊票數相同。R 的 predict() 會用亂數挑一個；這頁保留平手，不抽該亂數。"
+      : (pred.votes[pred.classIndex] + " / " + m.ntree + " 棵樹投給 " + pred.species + "。");
+
+    var votes = document.getElementById("votes");
+    votes.innerHTML = "";
+    m.classes.forEach(function (name, i) {
+      var row = document.createElement("div");
+      row.className = "vote";
+      var lab = document.createElement("div");
+      var sw = document.createElement("span");
+      sw.className = "swatch";
+      sw.style.background = colors[name] || "#888";
+      lab.appendChild(sw);
+      lab.appendChild(document.createTextNode(name));
+      var track = document.createElement("div");
+      track.className = "track";
+      var fill = document.createElement("div");
+      fill.className = "fill";
+      fill.style.width = (pred.prob[i] * 100) + "%";
+      fill.style.background = colors[name] || "#888";
+      track.appendChild(fill);
+      var num = document.createElement("div");
+      num.className = "vote-num";
+      num.textContent = pred.votes[i] + " 票 · " + (pred.prob[i] * 100).toFixed(1) + "%";
+      row.appendChild(lab);
+      row.appendChild(track);
+      row.appendChild(num);
+      votes.appendChild(row);
+    });
+
+    var summary = document.getElementById("summary");
+    summary.innerHTML = "";
+    function line(html) {
+      var p = document.createElement("p");
+      p.innerHTML = html;
+      summary.appendChild(p);
+    }
+    line("10-fold CV 準確率 <span class=\"acc\">" + m.accuracyLabel + "</span>");
+    line("多數類別基準 <span class=\"acc\">" + MODEL.baselineLabel + "</span>（Parkinson " + MODEL.nParkinson + " / " + MODEL.nSamples + "）");
+    line("mtry " + m.mtry + " · ntree " + m.ntree);
+    line("tax_glom 後 " + m.nGlom + " 個菌，模型使用 " + m.nFeatures + " 個");
+    line("盛行率門檻 " + Math.round(m.prevalence * 100) + "%" + (m.capped ? "，再依變異數留下 12 個" : ""));
+
+    var imp = document.getElementById("importance");
+    imp.innerHTML = "";
+    m.features.forEach(function (feature, i) {
+      var row = document.createElement("div");
+      row.className = "bar-row";
+      var lab = document.createElement("div");
+      lab.textContent = feature.label;
+      var track = document.createElement("div");
+      track.className = "bar-track";
+      var fill = document.createElement("div");
+      fill.className = "bar-fill hot";
+      fill.style.width = m.importance.scaled[i] + "%";
+      track.appendChild(fill);
+      var val = document.createElement("div");
+      val.className = "bar-val";
+      val.textContent = Number(m.importance.scaled[i]).toFixed(1);
+      row.appendChild(lab);
+      row.appendChild(track);
+      row.appendChild(val);
+      imp.appendChild(row);
+    });
+
+    var bars = document.getElementById("rank-bars");
+    bars.innerHTML = "";
+    MODEL.rankOrder.forEach(function (rank) {
+      var rm = MODEL.ranks[rank];
+      var row = document.createElement("div");
+      row.className = "bar-row";
+      var lab = document.createElement("div");
+      lab.textContent = rank + (rank === MODEL.bestRank ? " · 最高" : "");
+      var track = document.createElement("div");
+      track.className = "bar-track";
+      var fill = document.createElement("div");
+      fill.className = "bar-fill" + (rank === active ? " hot" : "");
+      fill.style.width = (rm.accuracy * 100) + "%";
+      track.appendChild(fill);
+      var val = document.createElement("div");
+      val.className = "bar-val";
+      val.textContent = rm.accuracyLabel;
+      row.appendChild(lab);
+      row.appendChild(track);
+      row.appendChild(val);
+      bars.appendChild(row);
+    });
+    document.getElementById("baseline-note").textContent =
+      "基準是永遠猜人數較多的 Parkinson，準確率 " + MODEL.baselineLabel +
+      "。樣本 " + MODEL.nSamples + "，OTU " + MODEL.nOtu + "。";
+
+    var conf = document.getElementById("confusion");
+    var table = document.createElement("table");
+    var head = document.createElement("tr");
+    head.appendChild(document.createElement("th"));
+    m.confusion.classes.forEach(function (name) {
+      var th = document.createElement("th");
+      th.textContent = "實際 " + name;
+      head.appendChild(th);
+    });
+    var thead = document.createElement("thead");
+    thead.appendChild(head);
+    table.appendChild(thead);
+    var tbody = document.createElement("tbody");
+    m.confusion.matrix.forEach(function (rowVals, i) {
+      var tr = document.createElement("tr");
+      var th = document.createElement("th");
+      th.textContent = "預測 " + m.confusion.classes[i];
+      tr.appendChild(th);
+      rowVals.forEach(function (n) {
+        var td = document.createElement("td");
+        td.textContent = n;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    conf.innerHTML = "";
+    conf.appendChild(table);
+
+    var features = document.getElementById("feature-table");
+    var ft = document.createElement("table");
+    ft.innerHTML = "<thead><tr><th>階層</th><th>菌</th><th>盛行率</th><th>平均相對豐度 %</th></tr></thead>";
+    var fb = document.createElement("tbody");
+    MODEL.rankOrder.forEach(function (rank) {
+      MODEL.ranks[rank].featureLog.forEach(function (row) {
+        var tr = document.createElement("tr");
+        if (rank === active) tr.className = "selected";
+        [rank, row.taxon, (row.prevalence * 100).toFixed(1) + "%", row.mean.toFixed(2)].forEach(function (text) {
+          var td = document.createElement("td");
+          td.textContent = text;
+          tr.appendChild(td);
+        });
+        fb.appendChild(tr);
+      });
+    });
+    ft.appendChild(fb);
+    features.innerHTML = "";
+    features.appendChild(ft);
+
+    var box = document.getElementById("verify");
+    var bad = false;
+    MODEL.rankOrder.forEach(function (rank) {
+      var v = VERIFY.ranks[rank];
+      if (v.voteMismatches !== 0 || v.nonTieClassMismatches !== 0 || v.tieOutsideLeaders !== 0) bad = true;
+    });
+    box.className = bad ? "status bad" : "status";
+    box.textContent = bad
+      ? "有階層的 JavaScript 票數或非平手類別與 R 不一致。"
+      : "六個階層的 JavaScript 整數票數都與 R 的 predict(type = \"vote\", norm.votes = FALSE) 相同。非平手時，類別也與 caret::predict() 以及 randomForest::predict() 相同。";
+
+    var vr = document.getElementById("verify-rows");
+    vr.innerHTML = "";
+    MODEL.rankOrder.forEach(function (rank) {
+      var v = VERIFY.ranks[rank];
+      var tr = document.createElement("tr");
+      [rank, v.rows, v.voteMismatches, v.nonTieClassMismatches, v.ties, v.scaledDiff].forEach(function (text) {
+        var td = document.createElement("td");
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      vr.appendChild(tr);
+    });
+
+    var ver = MODEL.versions;
+    document.getElementById("versions").textContent =
+      ver.r + " · caret " + ver.caret + " · randomForest " + ver.randomForest +
+      " · phyloseq " + ver.phyloseq + " · RNG " + ver.rng + " · seed " + ver.seed + " · 產生於 " + MODEL.generated;
+    document.getElementById("footer-note").textContent =
+      "重跑順序：01_machine_learning.R、02_machine_learning.R、export_model.R。Shiny 介面是 03_Machine_learning.R。";
+  }
+
+  rankSelect.addEventListener("change", function () {
+    active = rankSelect.value;
+    renderSliders();
+    render();
+  });
+  renderSliders();
+  render();
+})();
+</script>
+</body>
+</html>

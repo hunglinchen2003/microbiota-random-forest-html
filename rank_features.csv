@@ -1,0 +1,68 @@
+"rank","taxon","column","prevalence","variance","mean_percent","kept"
+"Phylum","Firmicutes","Firmicutes",1,105.33700683504,53.8943566538732,TRUE
+"Phylum","Bacteroidetes","Bacteroidetes",1,99.3861615088422,29.8714851619464,TRUE
+"Phylum","Actinobacteria","Actinobacteria",1,77.0128405542147,11.5370040698357,TRUE
+"Phylum","Proteobacteria","Proteobacteria",0.983333333333333,16.6789626760669,2.43249546932798,TRUE
+"Phylum","Verrucomicrobia","Verrucomicrobia",0.516666666666667,10.1229877045877,1.45798445808816,TRUE
+"Phylum","Fusobacteria","Fusobacteria",0.277777777777778,3.12589858139374,0.478672745589085,TRUE
+"Phylum","Cyanobacteria","Cyanobacteria",0.294444444444444,0.0275500492560584,0.0423184163975015,TRUE
+"Class","Clostridia","Clostridia",1,141.736115605286,41.7599657268977,TRUE
+"Class","Bacteroidia","Bacteroidia",1,99.3861615088422,29.8714851619464,TRUE
+"Class","Bacilli","Bacilli",1,70.1255392090509,6.08259927806908,TRUE
+"Class","Actinobacteria","Actinobacteria",0.980555555555556,60.6355999786925,8.00872581515705,TRUE
+"Class","Negativicutes","Negativicutes",0.986111111111111,17.4767817923771,2.93368575472892,TRUE
+"Class","Gammaproteobacteria","Gammaproteobacteria",0.972222222222222,16.2517245871572,2.23272774563769,TRUE
+"Class","Verrucomicrobiae","Verrucomicrobiae",0.516666666666667,10.1229877045877,1.45798445808816,TRUE
+"Class","Coriobacteriia","Coriobacteriia",0.994444444444444,9.23474326542155,3.52827825467865,TRUE
+"Class","Erysipelotrichia","Erysipelotrichia",0.994444444444444,7.60554772178485,3.11810589417751,TRUE
+"Class","Fusobacteriia","Fusobacteriia",0.277777777777778,3.12589858139374,0.478672745589085,TRUE
+"Class","Oxyphotobacteria","Oxyphotobacteria",0.261111111111111,0.0230967079921757,0.0335952998283245,TRUE
+"Class","Deltaproteobacteria","Deltaproteobacteria",0.680555555555556,0.0201381338332262,0.0971274131065671,TRUE
+"Order","Clostridiales","Clostridiales",1,141.713905834139,41.7586358729631,TRUE
+"Order","Bacteroidales","Bacteroidales",1,99.4599699572256,29.8607424068439,TRUE
+"Order","Lactobacillales","Lactobacillales",0.997222222222222,70.3270696561791,5.96870341738697,TRUE
+"Order","Bifidobacteriales","Bifidobacteriales",0.963888888888889,60.6915618243019,7.98839751891135,TRUE
+"Order","Selenomonadales","Selenomonadales",0.986111111111111,17.4767817923771,2.93368575472892,TRUE
+"Order","Enterobacteriales","Enterobacteriales",0.772222222222222,14.9924775974826,1.6109634806805,TRUE
+"Order","Verrucomicrobiales","Verrucomicrobiales",0.516666666666667,10.1237069677627,1.45727756338108,TRUE
+"Order","Coriobacteriales","Coriobacteriales",0.994444444444444,9.23474326542155,3.52827825467865,TRUE
+"Order","Erysipelotrichales","Erysipelotrichales",0.994444444444444,7.60554772178485,3.11810589417751,TRUE
+"Order","Fusobacteriales","Fusobacteriales",0.277777777777778,3.12589858139374,0.478672745589085,TRUE
+"Order","Betaproteobacteriales","Betaproteobacteriales",0.794444444444444,0.367784884891376,0.465213335754685,TRUE
+"Order","Bacillales","Bacillales",0.488888888888889,0.109937468274945,0.113895860682108,TRUE
+"Family","Bacteroidaceae","Bacteroidaceae",0.994444444444444,133.100582267868,21.1114133811726,TRUE
+"Family","Ruminococcaceae","Ruminococcaceae",1,81.1778895128245,18.0115965449493,TRUE
+"Family","Lachnospiraceae","Lachnospiraceae",1,80.6108343174978,20.4849484157575,TRUE
+"Family","Prevotellaceae","Prevotellaceae",0.483333333333333,74.5944755652736,3.99124187882771,TRUE
+"Family","Bifidobacteriaceae","Bifidobacteriaceae",0.963888888888889,60.8630757743243,8.00478343950485,TRUE
+"Family","Lactobacillaceae","Lactobacillaceae",0.688888888888889,29.6539167900996,1.8285155471529,TRUE
+"Family","Streptococcaceae","Streptococcaceae",0.994444444444444,26.7472244141112,3.68741296864549,TRUE
+"Family","Veillonellaceae","Veillonellaceae",0.763888888888889,15.9561920728934,1.95357778073745,TRUE
+"Family","Enterobacteriaceae","Enterobacteriaceae",0.772222222222222,15.0180441788764,1.61421118329986,TRUE
+"Family","Akkermansiaceae","Akkermansiaceae",0.516666666666667,10.2253328280558,1.46416788237632,TRUE
+"Family","Coriobacteriaceae","Coriobacteriaceae",0.772222222222222,9.04708061065496,3.0870247575005,TRUE
+"Family","Rikenellaceae","Rikenellaceae",0.897222222222222,8.30146431268258,1.7948315790562,TRUE
+"Genus","Bacteroides","Bacteroides",0.994444444444444,136.296701382596,21.4658764452622,TRUE
+"Genus","Bifidobacterium","Bifidobacterium",0.961111111111111,62.7626137346493,8.15440755487783,TRUE
+"Genus","Prevotella 9","Prevotella.9",0.241666666666667,50.1716860262478,2.53860242295478,TRUE
+"Genus","Lactobacillus","Lactobacillus",0.688888888888889,29.8657050321361,1.77689156551083,TRUE
+"Genus","Streptococcus","Streptococcus",0.994444444444444,28.0813439355085,3.67977237024575,TRUE
+"Genus","Faecalibacterium","Faecalibacterium",0.911111111111111,23.3959334869884,5.42164858529234,TRUE
+"Genus","Blautia","Blautia",0.991666666666667,16.6733042519408,5.30241539509707,TRUE
+"Genus","Ruminococcus 2","Ruminococcus.2",0.594444444444444,14.5183244276937,2.85684905574712,TRUE
+"Genus","Akkermansia","Akkermansia",0.516666666666667,10.8900989919038,1.51051125112757,TRUE
+"Genus","Megamonas","Megamonas",0.205555555555556,10.3356647077644,0.887064676784365,TRUE
+"Genus","Alistipes","Alistipes",0.894444444444444,9.85690751883168,1.77913465503455,TRUE
+"Genus","Collinsella","Collinsella",0.772222222222222,9.35292166081585,3.13921873913565,TRUE
+"Species","Bacteroides uniformis CL03T12C37","Bacteroides.uniformis.CL03T12C37",0.716666666666667,196.179346823189,8.60043792361043,TRUE
+"Species","Bacteroides uniformis","Bacteroides.uniformis",0.372222222222222,163.866054772049,5.28200199998366,TRUE
+"Species","Bacteroides stercoris CC31F","Bacteroides.stercoris.CC31F",0.386111111111111,147.746793878323,5.19376978658321,TRUE
+"Species","Lactobacillus salivarius","Lactobacillus.salivarius",0.316666666666667,109.246664984243,3.56401967748694,TRUE
+"Species","Fusicatenibacter saccharivorans","Fusicatenibacter.saccharivorans",0.741666666666667,90.7785395431299,7.58678734436565,TRUE
+"Species","Streptococcus salivarius subsp. salivarius","Streptococcus.salivarius.subsp..salivarius",0.916666666666667,67.5720210711469,4.9151007103584,TRUE
+"Species","Alistipes sp. AL-1","Alistipes.sp..AL.1",0.513888888888889,63.0939527627172,2.47028654591137,TRUE
+"Species","Ruminococcus sp. 5_1_39BFAA","Ruminococcus.sp..5_1_39BFAA",0.869444444444444,57.5587766154107,6.5734301361691,TRUE
+"Species","Faecalibacterium sp. canine oral taxon 147","Faecalibacterium.sp..canine.oral.taxon.147",0.663888888888889,54.1914055889548,4.37960696322031,TRUE
+"Species","Ruminococcus torques ATCC 27756","Ruminococcus.torques.ATCC.27756",0.75,53.8950065206695,4.13186913837862,TRUE
+"Species","Bacteroides cellulosilyticus CL02T12C19","Bacteroides.cellulosilyticus.CL02T12C19",0.386111111111111,48.3560471676717,2.59400591227378,TRUE
+"Species","Bacteroides vulgatus PC510","Bacteroides.vulgatus.PC510",0.4,45.3963502192629,2.23318497088767,TRUE
